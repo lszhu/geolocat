@@ -1,0 +1,33 @@
+{
+  "project": {
+    "projectSettingsVersion": "1.0",
+    "creationData": {
+      "type": "Demo",
+      "src": "http://edge-intel.s3.amazonaws.com/samples/production/sample-geolocation/sample.zip",
+      "projectGuid": "cd9bd3ee-3fc0-4339-b176-b7a795714c4d",
+      "lastModifiedDate": 1397989515199,
+      "creationDate": 1397989515133
+    },
+    "sourceDirectory": "",
+    "startFile": "index.html",
+    "projectFiles": {},
+    "projectDirectories": {},
+    "libraries": [
+      {
+        "name": "Cordova",
+        "version": "2.9.0",
+        "data": {
+          "default": true
+        }
+      },
+      {
+        "name": "intelXDK",
+        "version": "4.0.0",
+        "data": {
+          "default": true
+        }
+      }
+    ],
+    "serviceMethods": []
+  }
+}
