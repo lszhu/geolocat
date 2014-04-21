@@ -14,6 +14,7 @@ function drawMap() {
     myLatLng = latlng;
     var mapOptions = {
         center: latlng,
+        zoom: 5,
         mapTypeId: google.maps.MapTypeId.ROADMAP,
         zoomControl: true,
         zoomControlOptions: {
@@ -34,52 +35,55 @@ var options = {
     enableHighAccuracy: true
 };
 //Success callback
-var suc = function(p) {
-        console.log("geolocation success", 4);
-        //Draws the map initially
-        if (_map === null) {
-            currentLatitude = p.coords.latitude;
-            currentLongitude = p.coords.longitude;
-            drawMap();
+var suc = function (p) {
+    console.log("geolocation success", 4);
+    //Draws the map initially
+    if (_map === null) {
+        currentLatitude = p.coords.latitude;
+        currentLongitude = p.coords.longitude;
+        drawMap();
+    } else {
+        myLatLng = new google.maps.LatLng(p.coords.latitude, p.coords.longitude);
+    }
+    //Creates a new google maps marker object for using with the pins
+    if ((myLatLng.toString().localeCompare(oldLatLng.toString())) !== 0) {
+        //Create a new map marker
+        var Marker = new google.maps.Marker({
+            position: myLatLng,
+            map: _map
+        });
+        if (_llbounds === null) {
+            //Create the rectangle in geographical coordinates
+            _llbounds = new google.maps.LatLngBounds(new google.maps.LatLng(p.coords.latitude, p.coords.longitude)); //original
         } else {
-            myLatLng = new google.maps.LatLng(p.coords.latitude, p.coords.longitude);
+            //Extends geographical coordinates rectangle to cover current position
+            _llbounds.extend(myLatLng);
         }
-        //Creates a new google maps marker object for using with the pins
-        if ((myLatLng.toString().localeCompare(oldLatLng.toString())) !== 0) {
-            //Create a new map marker
-            var Marker = new google.maps.Marker({
-                position: myLatLng,
-                map: _map
-            });
-            if (_llbounds === null) {
-                //Create the rectangle in geographical coordinates
-                _llbounds = new google.maps.LatLngBounds(new google.maps.LatLng(p.coords.latitude, p.coords.longitude)); //original
-            } else {
-                //Extends geographical coordinates rectangle to cover current position
-                _llbounds.extend(myLatLng);
-            }
-            //Sets the viewport to contain the given bounds & triggers the "zoom_changed" event
-            _map.fitBounds(_llbounds);
-        }
-        oldLatLng = myLatLng;
-    };
-var fail = function() {
-        console.log("Geolocation failed. \nPlease enable GPS in Settings.", 1);
-    };
-var getLocation = function() {
-        console.log("in getLocation", 4);
-    };
-    //Execute when the DOM loads
-    //The Intel XDK intel.xdk.device.ready event fires once the Intel XDK has fully loaded. 
-    //After the device has fired, you can safely make calls to Intel XDK function.    
+        //Sets the viewport to contain the given bounds & triggers the "zoom_changed" event
+        _map.fitBounds(_llbounds);
+    }
+    oldLatLng = myLatLng;
+};
+
+var fail = function () {
+    console.log("Geolocation failed. \nPlease enable GPS in Settings.", 1);
+};
+var getLocation = function () {
+    console.log("in getLocation", 4);
+};
+//Execute when the DOM loads
+//The Intel XDK intel.xdk.device.ready event fires once the Intel XDK has fully loaded. 
+//After the device has fired, you can safely make calls to Intel XDK function.    
 
 function onDeviceReady() {
     try {
         if (intel.xdk.device.platform.indexOf("Android") != -1) {
             intel.xdk.display.useViewport(480, 480);
             document.getElementById("map_canvas").style.width = "480px";
+            document.getElementById("map_canvas").style.height = "480px";
         } else if (intel.xdk.device.platform.indexOf("iOS") != -1) {
-            if (intel.xdk.device.model.indexOf("iPhone") != -1 || intel.xdk.device.model.indexOf("iPod") != -1) {
+            if (intel.xdk.device.model.indexOf("iPhone") != -1 ||
+                intel.xdk.device.model.indexOf("iPod") != -1) {
                 intel.xdk.display.useViewport(320, 320);
                 document.getElementById("map_canvas").style.width = "320px";
             } else if (intel.xdk.device.model.indexOf("iPad") != -1) {
@@ -94,6 +98,13 @@ function onDeviceReady() {
         if (intel.xdk.geolocation !== null) {
             document.getElementById("map_canvas").style.height = screen.height + "px";
             intel.xdk.geolocation.watchPosition(suc, fail, options);
+        } else { // not support geolocation
+            suc({
+                coords: {
+                    latitude: currentLatitude,
+                    longitude: currentLongitude
+                }
+            });
         }
     } catch (e) {
         alert(e.message);
@@ -102,14 +113,14 @@ function onDeviceReady() {
         //lock orientation
         intel.xdk.device.setRotateOrientation("portrait");
         intel.xdk.device.setAutoRotate(false);
-    } catch (e) {}
-    try {
         //manage power
         intel.xdk.device.managePower(true, false);
-    } catch (e) {}
-    try {
+        //manage power
+        intel.xdk.device.managePower(true, false);
         //hide splash screen
         intel.xdk.device.hideSplashScreen();
-    } catch (e) {}
+    } catch (e) {
+        alert(e.message);
+    }
 }
 document.addEventListener("intel.xdk.device.ready", onDeviceReady, false);
